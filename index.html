@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+  <title>Test Result Organizer</title>
+  
+ <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+ 
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/vfs_fonts.js"></script>
+  
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
+
+<link rel="stylesheet" href="TestResultOrganizer.css">
+
+</head>
+<body>
+    
+<nav>Test Result Organizer</nav>
+<br><br> 
+ 
+ 
+<div class="container">
+<div class="column">
+ 
+<div id="detailsContainer" class="Testdetails">
+        <h3>Test details</h3>
+        <label>Date:</label>
+        
+        <input type="date" id="date" placeholder="Select date" required><br>
+
+        <label>Term:</label>
+        <input type="number" id="term" required placeholder="Enter term number"><br>
+
+        <label>Subject:</label>
+        <input type="text" id="subject" required placeholder="Enter subject name" class="Subject"><br>
+
+        <label>Test Type:</label>
+        <input type="text" id="testType" required placeholder="Enter type of test">
+</div>
+   <button id="toggleButton" onClick="toggleDetails()">Hide</button>
+
+<script>
+    function toggleDetails() {
+        var detailsTestdetails = document.getElementById("detailsContainer");
+        var toggleButton = document.getElementById("toggleButton");
+
+        if (detailsContainer.style.display === "none") {
+            detailsTestdetails.style.display = "block";
+            toggleButton.textContent = "Hide";
+        } else {
+            detailsTestdetails.style.display = "none";
+            toggleButton.textContent = "Show";
+        }
+    }
+</script>
+
+ 
+
+<h3>Add Student</h3>
+
+    <label>Name:</label>
+    <input type="text" id="name" placeholder="Enter student's name" required><br>
+
+    <label>Gender:</label>
+    <select id="gender">
+      <option value="">Select Gender</option>  
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+    </select>
+    
+    <br>
+
+    <label>Marks:</label>
+    <input type="number" id="marks" placeholder="Enter students' marks"required><br>
+
+    <button onclick="addStudent()" class="addStudent">Add Student</button>
+ </div>
+
+
+
+
+<div class="column">
+  <h2>Students Table</h2>
+  
+ 
+  <table id="studentsTable" class="content t1" border="1">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Gender</th>
+        <th>Marks</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="studentBody">
+    </tbody>
+  </table>
+
+  <h2>Frequency Table</h2>
+  <table id="frequencyTable" border="1" class="content">
+    <thead>
+      <tr>
+        <th>Range</th>
+        <th>Frequency</th>
+        <th>Cumulative Frequency</th>
+        <th>Percentage Frequency</th>
+      </tr>
+    </thead>
+    <tbody id="frequencyBody">
+    </tbody>
+  </table>
+
+<h2>Statistics</h2> 
+<div>
+    <label>Mode:</label>
+    <input type="" id="mode" readonly><br>
+
+    <label>Median:</label>
+    <input type="" id="median" readonly><br>
+    
+    <label>Mean Marks:</label>
+    <input type="" id="meanMarks" readonly><br>
+    <label>Standard Deviation:</label>
+    <input type="" id="standardDeviation" readonly><br>
+    <br><br>
+</div>
+</div>
+
+
+
+
+<!-- ZOOM BUTTON & FOOTER-->
+<div class="zoom-buttons">
+   <button onclick="zoomOut()">&#x2212</button>
+    <button onclick="zoomIn()">&#x002B</button>
+  </div>
+  
+ <footer>        
+    <button onclick="generatePDF()">Generate PDF</button>
+  <button onclick="deleteData()" style="color: red;">Delete All Data</button>
+ </footer> 
+  
+  
+  
+
+  <script>
+    // Array to store student data
+    let students = [];
+
+    // Function to add a student to the table
+    function addStudent() {
+      const date = document.getElementById("date").value;
+      const term = document.getElementById("term").value;
+      const subject = document.getElementById("subject").value;
+      const testType = document.getElementById("testType").value;
+      const name = document.getElementById("name").value;
+      const gender = document.getElementById("gender").value;
+      const marks = document.getElementById("marks").value;
+
+
+// Validate form fields
+if (name === "") {
+  displayPopup("Please enter a valid name");
+  return;
+}
+
+if (gender === "") {
+  displayPopup("Please select a gender");
+  return;
+}
+
+if (marks === "" || isNaN(marks) || marks < 0 || marks > 100) {
+  displayPopup("Please enter valid marks (between 0 and 100)");
+  return;
+}
+
+// Function to display pop-up message
+function displayPopup(message) {
+  // Create a <div> element for the pop-up
+  const popup = document.createElement("div");
+  popup.className = "popup";
+  
+  // Create a <p> element for the message
+  const messageElement = document.createElement("p");
+  messageElement.textContent = message;
+  
+  // Append the message to the pop-up
+  popup.appendChild(messageElement);
+  
+  // Style the pop-up
+  popup.style.position = "fixed";
+  popup.style.top = "50%";
+  popup.style.left = "50%";
+  popup.style.transform = "translate(-50%, -50%)";
+  popup.style.padding = "20px";
+  popup.style.background = "#fff";
+  popup.style.border = "1px solid #ddd";
+  popup.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.6)";
+  popup.style.minWidth = "60%";
+  popup.style.textAlign = "center";
+  popup.style.fontWeight = "bold";
+  popup.style.maxWidth = "90%";
+  
+  // Append the pop-up to the body
+  document.body.appendChild(popup);
+  
+  // Remove the pop-up after 3 seconds
+  setTimeout(function() {
+    popup.remove();
+  }, 3000);
+}
+
+
+      const student = { date, term, subject, testType, name, gender, marks };
+      students.push(student);
+      updateTable();
+
+      // Save to local storage
+      localStorage.setItem("students", JSON.stringify(students));
+
+
+
+ // Clear the input fields
+  clearFields();
+}
+
+// Function to clear the input fields
+function clearFields() {
+  document.getElementById("name").value = "";
+  document.getElementById("gender").value = "";
+  document.getElementById("marks").value = "";
+}
+
+    // Function to update the students table
+    function updateTable() {
+      const table = document.getElementById("studentBody");
+      table.innerHTML = "";
+
+      students.sort((a, b) => b.marks - a.marks);
+      students.forEach((student, index) => {
+        const row = table.insertRow();
+        const numberCell = row.insertCell(0);
+        const nameCell = row.insertCell(1);
+        const genderCell = row.insertCell(2);
+        const marksCell = row.insertCell(3);
+        const actionCell = row.insertCell(4);
+
+        numberCell.innerText = index + 1;
+        nameCell.innerText = student.name;
+        genderCell.innerText = student.gender;
+        marksCell.innerText = student.marks;
+
+
+const deleteButton = document.createElement("button");
+deleteButton.innerText = "\u{1F5D1}";
+deleteButton.onclick = () => showDeleteConfirmationPopup(index);
+actionCell.appendChild(deleteButton);
+
+const editButton = document.createElement("button");
+editButton.innerText = "\u270F";
+editButton.onclick = () => editStudent(index);
+actionCell.appendChild(editButton);
+});
+
+
+
+
+
+
+// Function to show the delete confirmation popup
+function showDeleteConfirmationPopup(index) {
+  // Create popup element
+  var popup = document.createElement("div");
+  popup.className = "popup";
+
+  // Create content element
+  var content = document.createElement("div");
+  content.className = "popup__content";
+  content.innerHTML = "Are you sure you want to delete this student?";
+
+  // Create buttons container element
+  var buttonsContainer = document.createElement("div");
+
+  // Create OK button element
+  var okButton = document.createElement("button");
+  okButton.className = "popup__button";
+  okButton.innerHTML = "Yes";
+  okButton.addEventListener("click", function() {
+    // Remove popup
+    document.body.removeChild(popup);
+
+    // Delete student
+    deleteStudent(index);
+  });
+
+  // Create cancel button element
+  var cancelButton = document.createElement("button");
+  cancelButton.className = "popup__button";
+  cancelButton.innerHTML = "No";
+  cancelButton.addEventListener("click", function() {
+    // Remove popup
+    document.body.removeChild(popup);
+  });
+
+  // Append buttons to buttons container
+  buttonsContainer.appendChild(okButton);
+  buttonsContainer.appendChild(cancelButton);
+
+  // Append content and buttons container to popup
+  popup.appendChild(content);
+  popup.appendChild(buttonsContainer);
+
+  // Append popup to the body
+  document.body.appendChild(popup);
+}
+
+// Function to delete a student from the table
+function deleteStudent(index) {
+  students.splice(index, 1);
+  updateTable();
+  localStorage.setItem("students", JSON.stringify(students));
+}
+
+
+
+
+
+
+
+
+
+
+// Function to edit student details
+function editStudent(index) {
+  const student = students[index];
+  
+  // Display a pop-up message
+  const popup = document.createElement('div');
+  popup.classList.add('popup');
+  popup.textContent = 'Editing student details...';
+  document.body.appendChild(popup);
+  
+  // Remove the pop-up message after 3 seconds
+  setTimeout(() => {
+    popup.remove();
+  }, 3000);
+
+
+
+
+
+      document.getElementById("date").value = student.date;
+      document.getElementById("term").value = student.term;
+      document.getElementById("subject").value = student.subject;
+      document.getElementById("testType").value = student.testType;
+      document.getElementById("name").value = student.name;
+      document.getElementById("gender").value = student.gender;
+      document.getElementById("marks").value = student.marks;
+
+      deleteStudent(index);
+    }}
+
+// Function to generate the frequency table
+function generateFrequencyTable() {
+  const frequencyRanges = [
+    { min: 0, max: 10 },
+    { min: 11, max: 20 },
+    { min: 21, max: 30 },
+    { min: 31, max: 40 },
+    { min: 41, max: 50 },
+    { min: 51, max: 60 },
+    { min: 61, max: 70 },
+    { min: 71, max: 80 },
+    { min: 81, max: 90 },
+    { min: 91, max: 100 }
+  ];
+
+  const frequencyTable = document.getElementById("frequencyBody");
+  frequencyTable.innerHTML = "";
+
+  let cumulativeFrequency = 0;
+  const totalStudents = students.length; // Total number of students
+
+  for (let i = frequencyRanges.length - 1; i >= 0; i--) {
+    const range = frequencyRanges[i];
+    const rangeString = `${range.min}-${range.max}`;
+    const frequency = students.filter(
+      student => student.marks >= range.min && student.marks <= range.max
+    ).length;
+
+    cumulativeFrequency += frequency;
+
+    const percentageFrequency = (frequency / totalStudents) * 100; // Calculate the percentage frequency
+
+    const row = frequencyTable.insertRow();
+    const rangeCell = row.insertCell(0);
+    const frequencyCell = row.insertCell(1);
+    const cumulativeFrequencyCell = row.insertCell(2);
+    const percentageFrequencyCell = row.insertCell(3); // Add a new cell for percentage frequency
+
+    rangeCell.innerText = rangeString;
+    frequencyCell.innerText = frequency;
+    cumulativeFrequencyCell.innerText = cumulativeFrequency;
+    percentageFrequencyCell.innerText = percentageFrequency.toFixed(2); // Display percentage with 2 decimal places
+  }
+}
+
+    // Function to calculate statistics
+    function calculateStatistics() {
+      const marksArray = students.map(student => parseInt(student.marks));
+      const totalMarks = marksArray.reduce((acc, curr) => acc + curr, 0);
+      const mean = (totalMarks / students.length).toFixed(2);
+
+      const frequency = {};
+      let mode = null;
+      marksArray.forEach(marks => {
+        frequency[marks] = frequency[marks] ? frequency[marks] + 1 : 1;
+        if (!mode || frequency[marks] > frequency[mode]) {
+          mode = marks;
+        }
+      });
+
+      const sortedMarks = marksArray.sort((a, b) => a - b);
+      const middleIndex = Math.floor(sortedMarks.length / 2);
+      const median =
+        sortedMarks.length % 2 === 0
+          ? (sortedMarks[middleIndex - 1] + sortedMarks[middleIndex]) / 2
+          : sortedMarks[middleIndex];
+
+      let deviationSum = 0;
+      marksArray.forEach(marks => {
+        deviationSum += (marks - mean) ** 2;
+      });
+      const standardDeviation = Math.sqrt(deviationSum / students.length);
+
+      document.getElementById("standardDeviation").value = standardDeviation.toFixed(2);
+      document.getElementById("meanMarks").value = mean;
+      document.getElementById("mode").value = mode;
+      document.getElementById("median").value = median;
+    }
+
+    // Function to generate and download PDF
+    function generatePDF() {
+      generateFrequencyTable();
+      calculateStatistics();
+
+      const docDefinition = {
+        content: [
+          { text: "Test Result", style: "header" },
+          { text: "Date: " + document.getElementById("date").value },
+          { text: "Term: " + document.getElementById("term").value },
+          { text: "Subject: " + document.getElementById("subject").value },
+          { text: "Test Type: " + document.getElementById("testType").value },
+          { text: "\n" },
+          { text: "Students Table", style: "subheader" },
+          { table: { body: getStudentsTableData() }, style: "table" },
+          { text: "\n" },
+          { text: "Frequency Table", style: "subheader" },
+          { table: { body: getFrequencyTableData() }, style: "table" },
+          { text: "\n" },
+          { text: "Statistics", style: "subheader" },
+          { text: "Standard Deviation: " + document.getElementById("standardDeviation").value },
+          { text: "Mean Marks: " + document.getElementById("meanMarks").value },
+          { text: "Mode: " + document.getElementById("mode").value },
+          { text: "Median: " + document.getElementById("median").value }
+        ],
+        styles: {
+          header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+          subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
+          table: { margin: [0, 5, 0, 15] }
+        }
+      };
+
+      pdfMake.createPdf(docDefinition).download("Test-Results.pdf");}
+    
+    // Helper function to get students table data for PDF
+    function getStudentsTableData() {
+      const headers = ["Number", "Name", "Gender", "Marks"];
+      const data = students.map((student, index) => [
+        index + 1,
+        student.name,
+        student.gender,
+        student.marks
+      ]);
+
+      return [headers, ...data];
+    }
+
+    // Helper function to get frequency table data for PDF
+    function getFrequencyTableData() {
+      const headers = ["Range", "Frequency", "Cumulative\nFrequency", "Percentage\nFrequency"];
+      const data = Array.from(document.getElementById("frequencyBody").rows).map(row =>
+        Array.from(row.cells).map(cell => cell.innerHTML)
+      );
+
+      return [headers, ...data];
+    }
+
+
+// Function to delete all data from local storage
+function deleteData() {
+  // Create popup element
+  var popup = document.createElement("div");
+  popup.className = "popup";
+
+  // Create content element
+  var content = document.createElement("div");
+  content.className = "popup__content";
+  content.innerHTML = "Are you sure you want to delete all data?";
+
+  // Create buttons container element
+  var buttonsContainer = document.createElement("div");
+
+  // Create OK button element
+  var okButton = document.createElement("button");
+  okButton.className = "popup__button";
+  okButton.innerHTML = "Yes";
+  okButton.addEventListener("click", function() {
+    // Remove popup
+    document.body.removeChild(popup);
+
+    // Delete data
+    students = [];
+    updateTable();
+    localStorage.removeItem("students");
+  });
+
+  // Create cancel button element
+  var cancelButton = document.createElement("button");
+  cancelButton.className = "popup__button";
+  cancelButton.innerHTML = "No";
+  cancelButton.addEventListener("click", function() {
+    // Remove popup
+    document.body.removeChild(popup);
+  });
+
+  // Append buttons to buttons container
+  buttonsContainer.appendChild(okButton);
+  buttonsContainer.appendChild(cancelButton);
+
+  // Append content and buttons container to popup
+  popup.appendChild(content);
+  popup.appendChild(buttonsContainer);
+
+  // Append popup to the body
+  document.body.appendChild(popup);     localStorage.removeItem("students");
+    }
+   
+    // Load data from local storage if available
+window.onload = function () {
+  const storedStudents = localStorage.getItem("students");
+  if (storedStudents) {
+    students = JSON.parse(storedStudents);
+    updateTable();
+  }
+
+  // Load input details into form fields
+  const lastStudent = students[students.length - 1]; // Get the latest stored student data
+  if (lastStudent) {
+    document.getElementById("date").value = lastStudent.date;
+    document.getElementById("term").value = lastStudent.term;
+    document.getElementById("subject").value = lastStudent.subject;
+    document.getElementById("testType").value = lastStudent.testType;
+  }
+};
+</script>
+
+
+
+<script>   
+ <!-- Disable selecting app or web content-->   
+// Disable right-click context menu
+document.addEventListener('contextmenu', function (event) {
+  event.preventDefault();
+});
+
+// Disable text selection
+document.addEventListener('selectstart', function (event) {
+  event.preventDefault();
+});
+
+<!-- Prevent Showing a link on Drag-->
+
+// Disable context menu on link
+const links = document.querySelectorAll('a');
+
+links.forEach(link => {
+  link.addEventListener('contextmenu', event => {
+    event.preventDefault();
+  });
+});
+
+// Disable drag on link
+links.forEach(link => {
+  link.addEventListener('dragstart', event => {
+    event.preventDefault();
+  });
+});
+
+
+<!-- ZOOM FUNCTIONS -->
+   
+   
+<!-- ZOOM FUNCTIONS -->
+var fontSizes = [7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
+var currentFontSizeIndex = 9; // Initial font size index (16px)
+
+function zoomIn() {
+  if (currentFontSizeIndex < fontSizes.length - 1) {
+    currentFontSizeIndex++;
+    updateFontSizes();
+  }
+}
+
+function zoomOut() {
+  if (currentFontSizeIndex > 0) {
+    currentFontSizeIndex--;
+    updateFontSizes();
+  }
+}
+
+function updateFontSizes() {
+  var contentElements = document.getElementsByClassName('content');
+  for (var i = 0; i < contentElements.length; i++) {
+    var fontSize = fontSizes[currentFontSizeIndex];
+    contentElements[i].style.fontSize = fontSize + 'px';
+  }
+}
+  </script>
+
+</body>
+</html>
